@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOL Mat - Jogo de Futebol Matemático</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #2c3e50, #000000); /* Fundo padrão */
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .screen {
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Top Bar --- */
+        #top-bar {
+            width: 100%;
+            background-color: #2c3e50;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .info-block {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .coin-icon {
+            color: gold;
+            margin-right: 5px;
+        }
+
+        .level-badge {
+            background-color: #f39c12;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-right: 15px;
+        }
+
+        #xp-container {
+            width: 150px;
+            height: 10px;
+            background-color: #7f8c8d;
+            border-radius: 5px;
+            margin-left: 10px;
+            position: relative;
+        }
+
+        #xp-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        #xp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+            color: black;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* --- Global Elements --- */
+        .btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #c0392b;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-green {
+            background-color: #2ecc71;
+        }
+
+        .btn-green:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-blue {
+            background-color: #3498db;
+        }
+
+        .btn-blue:hover {
+            background-color: #2980b9;
+        }
+
+        h1, h2, h3 {
+            color: #f1c40f;
+            text-align: center;
+        }
+
+        /* --- Intro Screen --- */
+        #intro-screen h1 {
+            margin-bottom: 20px;
+        }
+
+        #intro-screen .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* --- Shop Screen --- */
+        .shop-category {
+            margin-top: 30px;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .shop-item {
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 200px;
+        }
+
+        .shop-item.box {
+            height: 150px;
+        }
+
+        .shop-item.owned {
+            border: 2px solid #3498db;
+        }
+
+        .shop-item.equipped {
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+        }
+
+        .shop-icon {
+            font-size: 3em;
+            line-height: 1;
+        }
+
+        .shop-name {
+            font-weight: bold;
+            margin: 5px 0;
+            color: #f1c40f;
+        }
+
+        .shop-effect {
+            font-size: 0.8em;
+            color: #bdc3c7;
+            height: 30px; /* Garante altura para melhor alinhamento */
+        }
+
+        .price-tag {
+            font-size: 1.1em;
+            color: gold;
+            margin-top: 5px;
+        }
+
+        .shop-button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+        }
+
+        /* --- Team and Mode Selection --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mode-item {
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mode-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .mode-name {
+            font-weight: bold;
+            color: #f1c40f;
+            margin: 5px 0;
+        }
+
+        .mode-description, .mode-difficulty {
+            font-size: 0.8em;
+            color: #bdc3c7;
+        }
+
+        /* --- Game Screen (Field) --- */
+        #game-screen {
+            padding: 10px;
+        }
+
+        #score-board {
+            display: flex;
+            justify-content: space-around;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .team-score {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-number {
+            font-size: 2em;
+            color: #2ecc71;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(to bottom, #7f8c8d, #34495e); /* Campo e céu */
+            border: 5px solid #bdc3c7;
+            border-radius: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        #goal {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 400px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 3px solid #f1c40f;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            z-index: 5;
+        }
+
+        .target {
+            position: absolute;
+            background-color: white;
+            color: black;
+            width: 70px;
+            height: 30px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            z-index: 7;
+        }
+        
+        /* Posições dos alvos */
+        #t1 { top: 10px; left: 10%; } /* Superior Esquerdo */
+        #t2 { top: 10px; right: 10%; } /* Superior Direito */
+        #t3 { top: 50px; left: 25%; } /* Inferior Esquerdo */
+        #t4 { top: 50px; right: 25%; } /* Inferior Direito */
+
+        #goalie {
+            position: absolute;
+            top: 55px; /* Altura do alvo inferior */
+            left: 260px; /* Posição inicial central */
+            width: 80px;
+            height: 40px;
+            font-size: 2em;
+            text-align: center;
+            line-height: 40px;
+            transition: left 0.5s ease-out; /* Movimento horizontal */
+            z-index: 8;
+        }
+
+        #ball {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 2.5em;
+            line-height: 40px;
+            text-align: center;
+            left: 280px;
+            top: 380px; /* Posição de chute */
+            transition: all 0.7s;
+            z-index: 9;
+        }
+
+        #question-area {
+            text-align: center;
+            padding: 10px;
+            background-color: #1a252f;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        #question {
+            font-size: 1.5em;
+            color: #f1c40f;
+            margin: 5px 0;
+        }
+
+        #message {
+            font-style: italic;
+            color: #bdc3c7;
+        }
+        
+        #chute-btn-area {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* --- Homenagem à Professora Laryssa --- */
+        .homenagem {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(52, 73, 94, 0.7);
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .homenagem strong {
+            color: #f1c40f;
+        }
+
+        /* --- Melhorias de Responsividade --- */
+        @media (max-width: 500px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .screen {
+                padding: 15px;
+            }
+            
+            .shop-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #game-container {
+                height: 350px;
+            }
+            
+            #goalie {
+                font-size: 1.5em;
+            }
+            
+            #ball {
+                font-size: 2em;
+            }
+            
+            .target {
+                width: 60px;
+                height: 25px;
+                font-size: 0.9em;
+            }
+            
+            #t1 { top: 5px; left: 5%; }
+            #t2 { top: 5px; right: 5%; }
+            #t3 { top: 40px; left: 20%; }
+            #t4 { top: 40px; right: 20%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div class="info-block">
+            <span class="level-badge">Nível <span id="player-level">1</span></span>
+            <div id="xp-container">
+                <div id="xp-bar"></div>
+                <span id="xp-text">0/100 XP</span>
+            </div>
+        </div>
+        <div class="info-block">
+            <span class="coin-icon">💰</span>
+            <span id="top-coins">0</span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div id="intro-screen" class="screen">
+            <h1>GOL Mat: O Desafio</h1>
+            <p>Selecione um modo de jogo para começar!</p>
+            <div class="btn-group">
+                <button class="btn btn-green" onclick="abrirModos()">Jogar (Modos)</button>
+                <button class="btn btn-blue" onclick="abrirLoja('intro')">Loja de Itens</button>
+            </div>
+            
+            <!-- Homenagem à Professora Laryssa -->
+            <div class="homenagem">
+                <p>Desenvolvido como projeto educacional</p>
+                <p>Orientado pela <strong>Professora Laryssa</strong></p>
+            </div>
+        </div>
+
+        <div id="modes-screen" class="screen hidden">
+            <h2>🏆 Seleção de Modos</h2>
+            <div id="modes-grid" class="grid">
+                </div>
+            <button class="btn" onclick="voltarIntro()">Voltar</button>
+        </div>
+
+        <div id="team-screen" class="screen hidden">
+            <h2>🌍 Escolha seu Time</h2>
+            <div id="teams-grid" class="grid">
+                </div>
+            <button class="btn" onclick="abrirModos()">Voltar</button>
+        </div>
+
+        <div id="shop-screen" class="screen hidden">
+            <h2>🛒 Loja do Jogador</h2>
+            <p style="text-align: center;">Suas Moedas: <span id="shop-coins">0</span> 💰</p>
+
+            <div class="shop-category">
+                <h3>Bolas (Aumentam Chance de Chute Perfeito)</h3>
+                <div id="shop-balls" class="shop-grid"></div>
+            </div>
+
+            <div class="shop-category">
+                <h3>Luvas/Equipamento Goleiro (Reduzem Defesa Inimiga)</h3>
+                <div id="shop-goalies" class="shop-grid"></div>
+            </div>
+
+            <div class="shop-category">
+                <h3>Chuteiras</h3>
+                <div id="shop-chuteiras" class="shop-grid"></div>
+            </div>
+
+            <div class="shop-category">
+                <h3>Uniformes</h3>
+                <div id="shop-uniformes" class="shop-grid"></div>
+            </div>
+
+            <div class="shop-category">
+                <h3>Habilidades (Consumíveis)</h3>
+                <div id="shop-habilidades" class="shop-grid"></div>
+            </div>
+
+            <div class="shop-category">
+                <h3>Caixas de Recompensa</h3>
+                <div id="shop-caixas" class="shop-grid"></div>
+            </div>
+
+            <button class="btn btn-green" onclick="voltarDaLoja()">Voltar</button>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <h2 id="nome-fase" style="margin-top: 0;">Fase de Grupos</h2>
+            <div id="score-board">
+                <div class="team-score">
+                    Seu Time
+                    <span id="placar-time" class="score-number">0</span>
+                </div>
+                <div>
+                    Chute <span id="chute-atual-display">0</span>
+                </div>
+                <div class="team-score">
+                    <span id="nome-adversario">Goleiro Amador</span>
+                    <span id="placar-adversario" class="score-number">0</span>
+                </div>
+            </div>
+
+            <div id="game-container">
+                <div id="goal"></div>
+
+                <div id="t1" class="target" data-resposta="?" onclick="chutar(this)">?</div>
+                <div id="t2" class="target" data-resposta="?" onclick="chutar(this)">?</div>
+                <div id="t3" class="target" data-resposta="?" onclick="chutar(this)">?</div>
+                <div id="t4" class="target" data-resposta="?" onclick="chutar(this)">?</div>
+
+                <span id="goalie">🤖</span>
+
+                <span id="ball">⚽</span>
+            </div>
+
+            <div id="question-area">
+                <div id="question">Clique em "Chute" para começar!</div>
+                <div id="message"></div>
+            </div>
+            
+            <div id="chute-btn-area">
+                <button class="btn btn-green" onclick="iniciarRodada()">Chute!</button>
+                <button class="btn" onclick="voltarIntro()">Desistir</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DADOS DO JOGO ---
+        const times = [
+            { id: 'bra', nome: 'Brasil', cor: 'linear-gradient(135deg, #FFDF00, #009C3B)', icone: '💚💛' },
+            { id: 'cea', nome: 'Ceará', cor: 'linear-gradient(135deg, #000000, #ffffff, #000000)', icone: '🏁' },
+            { id: 'for', nome: 'Fortaleza', cor: 'linear-gradient(135deg, #183384, #D61B1F, #ffffff)', icone: '🦁' },
+            { id: 'sao', nome: 'São Paulo', cor: 'repeating-linear-gradient(90deg, #FFFFFF, #FFFFFF 33%, #FF0000 33%, #000000 66%, #000000 100%)', icone: '🔴⚫⚪' },
+            { id: 'fla', nome: 'Flamengo', cor: 'linear-gradient(135deg, #c3281e, #000000)', icone: '🔴⚫' },
+            { id: 'cor', nome: 'Corinthians', cor: 'linear-gradient(135deg, #000000, #FFFFFF, #000000)', icone: '🦅' },
+            { id: 'pal', nome: 'Palmeiras', cor: 'linear-gradient(135deg, #006437, #FFFFFF)', icone: '🐷' },
+            { id: 'real', nome: 'Real Madrid', cor: 'linear-gradient(135deg, #FFFFFF, #FEBE10)', icone: '👑' },
+            { id: 'city', nome: 'Man. City', cor: 'linear-gradient(135deg, #6CABDD, #1C2C5B)', icone: '🦈' },
+            { id: 'psg', nome: 'PSG', cor: 'linear-gradient(135deg, #004171, #DA291C)', icone: '🗼' }
+        ];
+
+        const fases = [
+            { nome: 'Fase de Grupos', meta: 3, dif: 'easy', xp_win: 50, adv: 'Goleiro Amador', def_base: 0.3 },
+            { nome: 'Oitavas de Final', meta: 3, dif: 'medium', xp_win: 75, adv: 'Goleiro Firme', def_base: 0.4 },
+            { nome: 'Quartas de Final', meta: 4, dif: 'medium', xp_win: 100, adv: 'Goleiro Ágil', def_base: 0.5 },
+            { nome: 'Semifinal', meta: 4, dif: 'hard', xp_win: 150, adv: 'Goleiro Profissional', def_base: 0.6 },
+            { nome: 'Grande Final', meta: 5, dif: 'expert', xp_win: 250, adv: 'O Muralha', def_base: 0.7 }
+        ];
+
+        // ITENS DE JOGO
+        const produtos = {
+            bolas: [
+                { id: 'b_padrao', nome: 'Clássica', icone: '⚽', preco: 0, efet_perfeito: 0, efeito: 'Nenhum', tipo: 'bola' },
+                { id: 'b_basq', nome: 'Basquete', icone: '🏀', preco: 50, efet_perfeito: 0.1, efeito: '+10% Chute Perfeito', tipo: 'bola' },
+                { id: 'b_tenc', nome: 'Tênis', icone: '🎾', preco: 75, efet_perfeito: 0.15, efeito: '+15% Chute Perfeito', tipo: 'bola' },
+                { id: 'b_bilhar', nome: 'Bilhar', icone: '🎱', preco: 150, efet_perfeito: 0.2, efeito: '+20% Chute Perfeito', tipo: 'bola' }
+            ],
+            goleiros: [
+                { id: 'g_padrao', nome: 'Luvas', icone: '🧤', preco: 0, efet_defesa: 0, efeito: 'Nenhum', tipo: 'goleiro' },
+                { id: 'g_robo', nome: 'Robô', icone: '🤖', preco: 100, efet_defesa: 0.15, efeito: '-15% Defesa Inimiga', tipo: 'goleiro' },
+                { id: 'g_alien', nome: 'Alien', icone: '👽', preco: 250, efet_defesa: 0.25, efeito: '-25% Defesa Inimiga', tipo: 'goleiro' }
+            ],
+        };
+
+        const chuteiras = [
+            { id: 'chuteira_basica', nome: 'Chuteira Básica', icone: '👟', preco: 0, efeito_nome: 'Nenhum', efeito: 'nenhum', tipo: 'chuteira' },
+            { id: 'chuteira_precisao', nome: 'Chuteira da Precisão', icone: '🎯', preco: 200, efeito_nome: 'Aumenta Precisão', efeito: 'aumenta_precisao', tipo: 'chuteira' }
+        ];
+
+        const uniformes = [
+            { id: 'uniforme_basico', nome: 'Uniforme Básico', icone: '🟢', preco: 0, efeito_nome: 'Nenhum', cor: '#4CAF50', efeito: 'nenhum', tipo: 'uniforme' },
+            { id: 'uniforme_camufagem', nome: 'Uniforme Camuflado', icone: '🟤', preco: 150, efeito_nome: 'Goleiro Lento', cor: '#8B4513', efeito: 'goleiro_mais_lento', tipo: 'uniforme' }
+        ];
+
+        const habilidades = [
+            { id: 'chute_curva', nome: 'Chute com Efeito', icone: '🌀', descricao: 'A bola faz curva no ar', custo: 30, duracao: 3, preco: 150, tipo: 'habilidade' },
+            { id: 'visao_raiox', nome: 'Visão Raio-X', icone: '📡', descricao: 'Mostra resposta correta', custo: 50, duracao: 1, preco: 300, tipo: 'habilidade' }
+        ];
+
+        const modosJogo = [
+            {
+                id: 'classico',
+                nome: 'Modo Clássico',
+                icone: '⚽',
+                descricao: 'Jogue no modo tradicional (Campanha da Copa).',
+                dificuldade: 'Variável',
+                recompensa: 'Normal'
+            },
+            {
+                id: 'contra_relogio',
+                nome: 'Contra o Tempo',
+                icone: '⏱️',
+                descricao: 'Responda o mais rápido possível sob pressão!',
+                dificuldade: 'Alta',
+                recompensa: 'Bônus Velocidade'
+            },
+            {
+                id: 'sobrevivencia',
+                nome: 'Modo Sobrevivência',
+                icone: '💀',
+                descricao: 'Jogue até errar. Dificuldade aumenta progressivamente.',
+                dificuldade: 'Progressiva',
+                recompensa: 'Alto Risco/Recompensa'
+            }
+        ];
+
+        const caixasRecompensa = [
+            { 
+                id: 'caixa_bronze', 
+                nome: 'Caixa de Bronze', 
+                icone: '🥉', 
+                custo: 100, 
+                efeito_nome: 'Itens Comuns', 
+                chance_epico: 5,
+                itens_possiveis: ['b_basq', 'g_robo', 'chuteira_precisao'] 
+            }
+        ];
+
+        // --- ESTADO DO JOGO ---
+        let moedas = 500; 
+        let xp = 0;
+        let nivel = 1;
+        let inventario = ['b_padrao', 'g_padrao', 'chuteira_basica', 'uniforme_basico', 'chute_curva'];
+        
+        let equipados = { 
+            bola: produtos.bolas[0], 
+            goleiro: produtos.goleiros[0],
+            chuteira: chuteiras[0],
+            uniforme: uniformes[0]
+        };
+        
+        let timeJogador = times[0];
+        let faseAtualIndex = 0;
+        let origemLoja = 'intro';
+        let modoJogoAtual = 'classico';
+
+        // Variáveis da Partida
+        let chuteAtual = 0;
+        let golsJogador = 0;
+        let golsAdversario = 0; 
+        let respostaCerta = 0;
+        let podeChutar = true;
+        let jogoAtivo = false;
+        let alvoCorretoID = ''; // ID do alvo que contém a resposta correta
+
+        // --- NAVEGAÇÃO / UI ---
+        function esconderTelas() {
+            document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+        }
+
+        function voltarIntro() {
+            esconderTelas();
+            document.getElementById('intro-screen').classList.remove('hidden');
+            atualizarTopBar();
+            jogoAtivo = false;
+            document.body.style.background = 'linear-gradient(135deg, #2c3e50, #000000)'; // Reset background
+        }
+
+        function adicionarXP(quantidade) {
+            xp += quantidade;
+            let xpParaProxNivel = nivel * 100;
+            
+            while (xp >= xpParaProxNivel) {
+                xp -= xpParaProxNivel;
+                nivel++;
+                xpParaProxNivel = nivel * 100;
+                alert(`✨ Parabéns! Você subiu para o Nível ${nivel}! Ganhou 50 Moedas!`);
+                moedas += 50;
+            }
+            atualizarTopBar();
+        }
+
+        function atualizarTopBar() {
+            document.getElementById('top-coins').innerText = moedas;
+            document.getElementById('player-level').innerText = nivel;
+            
+            const xpParaProxNivel = nivel * 100;
+            const percentualXP = (xp / xpParaProxNivel) * 100;
+            
+            document.getElementById('xp-bar').style.width = `${percentualXP}%`;
+            document.getElementById('xp-text').innerText = `${xp}/${xpParaProxNivel} XP`;
+        }
+        
+        // --- FUNÇÕES DE MODO DE JOGO ---
+        function abrirModos() {
+            esconderTelas();
+            renderModos();
+            document.getElementById('modes-screen').classList.remove('hidden');
+        }
+
+        function renderModos() {
+            const grid = document.getElementById('modes-grid');
+            grid.innerHTML = modosJogo.map(modo => `
+                <div class="mode-item" onclick="selecionarModo('${modo.id}')">
+                    <div class="shop-icon" style="font-size: 2rem;">${modo.icone}</div>
+                    <div class="mode-name">${modo.nome}</div>
+                    <div class="mode-description">${modo.descricao}</div>
+                    <div class="mode-difficulty">Dificuldade: ${modo.dificuldade}</div>
+                    <div class="mode-difficulty" style="color: #4CAF50;">Recompensa: ${modo.recompensa}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selecionarModo(modoId) {
+            modoJogoAtual = modoId;
+            const modoSelecionado = modosJogo.find(m => m.id === modoId);
+            
+            if (modoId === 'classico') {
+                alert(`Modo ${modoSelecionado.nome} selecionado! Indo para a seleção de times...`);
+                irParaSelecaoTimes();
+            } else {
+                alert(`Modo ${modoSelecionado.nome} selecionado! Iniciando jogo (Dificuldade Padrão)...`);
+                timeJogador = times[0]; // Seleciona time padrão para modos rápidos
+                iniciarPartida();
+            }
+        }
+
+        // --- FUNÇÕES DA LOJA ---
+        function abrirLoja(origem) {
+            origemLoja = origem;
+            esconderTelas();
+            document.getElementById('shop-coins').innerText = moedas;
+            renderLoja();
+            document.getElementById('shop-screen').classList.remove('hidden');
+            atualizarTopBar();
+        }
+
+        function voltarDaLoja() {
+            esconderTelas();
+            // Volta para a tela de origem
+            if (origemLoja === 'game') {
+                document.getElementById('game-screen').classList.remove('hidden');
+            } else {
+                document.getElementById('intro-screen').classList.remove('hidden');
+            }
+        }
+        
+        function getItemData(id) {
+            for (const key in produtos) {
+                const item = produtos[key].find(p => p.id === id);
+                if (item) return item;
+            }
+            let item = chuteiras.find(p => p.id === id);
+            if (item) return item;
+            item = uniformes.find(p => p.id === id);
+            if (item) return item;
+            item = habilidades.find(p => p.id === id);
+            if (item) return item;
+            item = caixasRecompensa.find(p => p.id === id);
+            if (item) return item;
+            return null;
+        }
+
+        function criarItemLoja(produto, tipo) {
+            const tenho = inventario.includes(produto.id);
+            const equipado = equipados[tipo] && equipados[tipo].id === produto.id;
+            const effectText = produto.efeito || produto.efeito_nome || produto.descricao || 'Nenhum Efeito';
+            const isConsumable = produto.tipo === 'habilidade';
+
+            let btnText = tenho ? (equipado ? 'EQUIPADO' : 'EQUIPAR') : 'COMPRAR';
+            if (isConsumable) btnText = 'COMPRAR';
+
+            return `
+                <div class="shop-item ${tenho && !isConsumable ? 'owned' : ''} ${equipado ? 'equipped' : ''}" style="height: ${isConsumable ? '150px' : '200px'};">
+                    <span class="shop-icon">${produto.icone}</span>
+                    <span class="shop-name">${produto.nome}</span>
+                    <span class="shop-effect">${effectText}</span>
+                    <span class="price-tag">${produto.preco} 💰</span>
+                    <button class="btn shop-button" 
+                    onclick="acaoLoja('${produto.id}', '${tipo}', ${produto.preco})">
+                    ${btnText}
+                    </button>
+                </div>
+            `;
+        }
+
+        function criarCaixaLoja(caixa) {
+            return `
+                <div class="shop-item box">
+                    <span class="shop-icon">${caixa.icone}</span>
+                    <span class="shop-name">${caixa.nome}</span>
+                    <span class="shop-effect">Chance Épica: ${caixa.chance_epico}%</span>
+                    <span class="price-tag">${caixa.custo} 💰</span>
+                    <button class="btn shop-button btn-blue" 
+                    onclick="abrirCaixa('${caixa.id}', ${caixa.custo})">
+                    ABRIR
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderLoja() {
+            document.getElementById('shop-balls').innerHTML = produtos.bolas.map(p => criarItemLoja(p, 'bola')).join('');
+            document.getElementById('shop-goalies').innerHTML = produtos.goleiros.map(p => criarItemLoja(p, 'goleiro')).join('');
+            document.getElementById('shop-chuteiras').innerHTML = chuteiras.map(p => criarItemLoja(p, 'chuteira')).join('');
+            document.getElementById('shop-uniformes').innerHTML = uniformes.map(p => criarItemLoja(p, 'uniforme')).join('');
+            document.getElementById('shop-habilidades').innerHTML = habilidades.map(p => criarItemLoja(p, 'habilidade')).join('');
+            document.getElementById('shop-caixas').innerHTML = caixasRecompensa.map(p => criarCaixaLoja(p)).join('');
+        }
+
+        function acaoLoja(id, tipo, preco) {
+            const produto = getItemData(id);
+
+            if (!produto) return;
+
+            // Verifica se é um item consumível (habilidade)
+            if (produto.tipo === 'habilidade') {
+                if (moedas >= preco) {
+                    moedas -= preco;
+                    inventario.push(id);
+                    document.getElementById('shop-coins').innerText = moedas;
+                    alert(`✅ Compra de ${produto.nome} (Habilidade) realizada!`);
+                    atualizarTopBar();
+                    renderLoja();
+                } else {
+                    alert("❌ Moedas insuficientes! Jogue mais para ganhar.");
+                }
+                return;
+            }
+
+            // Lógica de compra/equipagem normal
+            if (inventario.includes(id)) {
+                equipados[tipo] = produto;
+                renderLoja();
+                atualizarVisualEquipados();
+                alert(`✅ Item ${produto.nome} equipado!`);
+            } else {
+                if (moedas >= preco) {
+                    moedas -= preco;
+                    inventario.push(id);
+                    document.getElementById('shop-coins').innerText = moedas;
+                    equipados[tipo] = produto;
+                    atualizarVisualEquipados();
+                    renderLoja();
+                    alert(`✅ Compra de ${produto.nome} realizada e equipado automaticamente!`);
+                } else {
+                    alert("❌ Moedas insuficientes! Jogue mais para ganhar.");
+                }
+            }
+            atualizarTopBar();
+        }
+
+        function abrirCaixa(caixaId, custo) {
+            const caixa = caixasRecompensa.find(c => c.id === caixaId);
+
+            if (moedas >= custo) {
+                moedas -= custo;
+                document.getElementById('shop-coins').innerText = moedas;
+                atualizarTopBar();
+
+                const itensDisponiveis = caixa.itens_possiveis;
+                const itemId = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
+                const itemSorteado = getItemData(itemId);
+
+                if (itemSorteado) {
+                    let mensagem = `🎉 Você abriu a ${caixa.nome} e recebeu: **${itemSorteado.nome}** (${itemSorteado.icone})!`;
+                    
+                    if (!inventario.includes(itemSorteado.id)) {
+                        inventario.push(itemSorteado.id);
+                        mensagem += "\n✅ Adicionado ao seu inventário!";
+                        
+                        if (itemSorteado.tipo && ['bola', 'goleiro', 'chuteira', 'uniforme'].includes(itemSorteado.tipo)) {
+                            equipados[itemSorteado.tipo] = itemSorteado;
+                            atualizarVisualEquipados();
+                            mensagem += `\n🔄 ${itemSorteado.nome} equipado automaticamente!`;
+                        }
+                    } else {
+                        moedas += 50; 
+                        mensagem += "\n🔄 Item duplicado! Você recebeu 50 moedas extra.";
+                        atualizarTopBar();
+                    }
+                    
+                    renderLoja(); 
+                    alert(mensagem);
+                }
+            } else {
+                alert("❌ Moedas insuficientes para abrir a caixa!");
+            }
+        }
+
+        // --- SELEÇÃO DE TIMES ---
+        function irParaSelecaoTimes() {
+            esconderTelas();
+            const grid = document.getElementById('teams-grid');
+            grid.innerHTML = times.map(time => `
+                <div style="background: ${time.cor}; padding: 10px; border-radius: 10px; cursor: pointer; text-align: center;" 
+                     onclick="selecionarTime('${time.id}')">
+                    <span style="font-size: 2rem;">${time.icone}</span><br>
+                    <span style="font-weight: bold; color: black; text-shadow: 1px 1px white;">${time.nome}</span>
+                </div>
+            `).join('');
+            document.getElementById('team-screen').classList.remove('hidden');
+        }
+
+        function selecionarTime(timeId) {
+            timeJogador = times.find(t => t.id === timeId);
+            alert(`Você escolheu ${timeJogador.nome}! Iniciando Fase de Grupos...`);
+            faseAtualIndex = 0; // Inicia a campanha
+            iniciarPartida();
+        }
+
+        function atualizarVisualEquipados() {
+            const ballEl = document.getElementById('ball');
+            const goalieEl = document.getElementById('goalie');
+            if(ballEl) ballEl.innerText = equipados.bola.icone;
+            if(goalieEl) goalieEl.innerText = equipados.goleiro.icone;
+            
+            // Efeito visual do uniforme (fundo)
+            const uniform = equipados.uniforme;
+            if (uniform && uniform.cor) {
+                document.body.style.background = `linear-gradient(135deg, ${uniform.cor}, #000000)`;
+            }
+        }
+        
+        // Função auxiliar para embaralhar um array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+          * @description Gera 3 respostas incorretas próximas da resposta certa e as distribui nos alvos.
+          */
+        function montarRespostas() {
+            const alvos = ['t1', 't2', 't3', 't4'];
+            const respostas = new Set();
+            respostas.add(respostaCerta);
+
+            // Gera 3 respostas incorretas próximas
+            while (respostas.size < 4) {
+                // Variações: +1, -1, +2, -2, +5, -5 (garantindo que seja >= 0)
+                const variacao = Math.floor(Math.random() * 6) + 1; // 1 a 6
+                const sinal = Math.random() < 0.5 ? 1 : -1;
+                let incorreta = respostaCerta + (variacao * sinal);
+                
+                if (incorreta < 0) {
+                    // Evita respostas negativas se a correta for pequena
+                    incorreta = respostaCerta + variacao;
+                }
+
+                // Garante que a resposta incorreta seja diferente da correta
+                if (incorreta !== respostaCerta) {
+                    respostas.add(incorreta);
+                }
+            }
+
+            const respostasArray = shuffleArray(Array.from(respostas));
+            
+            // Distribui as respostas nos alvos
+            alvos.forEach((id, index) => {
+                const target = document.getElementById(id);
+                const valor = respostasArray[index];
+                target.innerText = valor;
+                target.dataset.resposta = valor; // Salva a resposta no dataset
+                target.style.pointerEvents = 'auto'; // Habilita o clique
+                target.style.background = 'white';
+                target.style.transform = 'scale(1)';
+
+                // Salva o ID do alvo correto
+                if (valor === respostaCerta) {
+                    alvoCorretoID = id;
+                }
+            });
+        }
+
+
+        // --- LÓGICA DO JOGO ---
+        function iniciarPartida() {
+            esconderTelas();
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            // Reset e Configuração
+            chuteAtual = 0;
+            golsJogador = 0;
+            golsAdversario = 0;
+            podeChutar = true;
+            jogoAtivo = true;
+
+            const fase = fases[faseAtualIndex];
+            const adversarioNome = modoJogoAtual === 'classico' ? fase.adv : 'Adversário do Modo Rápido';
+
+            document.getElementById('nome-fase').innerText = modoJogoAtual === 'classico' ? fase.nome : modosJogo.find(m => m.id === modoJogoAtual).nome;
+            document.getElementById('nome-adversario').innerText = adversarioNome;
+            document.getElementById('placar-time').innerText = golsJogador;
+            document.getElementById('placar-adversario').innerText = golsAdversario;
+            document.getElementById('chute-atual-display').innerText = chuteAtual;
+            document.getElementById('message').innerText = 'Clique em "Chute!" para começar!';
+            document.getElementById('question').innerText = `Chutes: ${fase ? fase.meta : 5} | Vantagem: ${fase ? fase.meta - 1 : 4}`;
+
+            // Reset visual da bola e goleiro
+            const ball = document.getElementById('ball');
+            ball.style.left = '280px';
+            ball.style.top = '380px';
+            ball.style.transition = 'none';
+            
+            document.getElementById('goalie').style.left = '260px';
+            document.getElementById('goalie').style.transitionDuration = '0.5s'; // Reset velocidade goleiro
+
+            const targets = document.querySelectorAll('.target');
+            targets.forEach(target => {
+                target.innerText = '?';
+                target.style.background = 'white';
+                target.style.pointerEvents = 'none';
+            });
+
+            atualizarVisualEquipados();
+        }
+
+        function iniciarRodada() {
+            if (!jogoAtivo || !podeChutar) return;
+            
+            podeChutar = false;
+            chuteAtual++;
+            document.getElementById('chute-atual-display').innerText = chuteAtual;
+
+            // Reset visual dos alvos
+            document.querySelectorAll('.target').forEach(target => {
+                target.style.background = 'white';
+                target.style.pointerEvents = 'none';
+                target.style.transform = 'scale(1)';
+            });
+            
+            // Gera uma conta matemática
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const operacao = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+            
+            let pergunta, resposta;
+            switch(operacao) {
+                case '+':
+                    pergunta = `${num1} + ${num2} = ?`;
+                    resposta = num1 + num2;
+                    break;
+                case '-':
+                    const maior = Math.max(num1, num2);
+                    const menor = Math.min(num1, num2);
+                    pergunta = `${maior} - ${menor} = ?`;
+                    resposta = maior - menor;
+                    break;
+                case '*':
+                    pergunta = `${num1} × ${num2} = ?`;
+                    resposta = num1 * num2;
+                    break;
+            }
+            
+            respostaCerta = resposta;
+            document.getElementById('question').innerText = pergunta;
+            document.getElementById('message').innerText = 'Selecione a resposta correta para chutar!';
+
+            // Posição inicial da bola (reset de movimento anterior)
+            const ball = document.getElementById('ball');
+            ball.style.transition = 'none';
+            ball.style.left = '280px';
+            ball.style.top = '380px';
+            
+            // Monta as 4 opções nos alvos
+            montarRespostas();
+        }
+        
+        function chutar(target) {
+            if (podeChutar) return; // Garante que a rodada já começou e o jogador não pode chutar duas vezes
+
+            const respostaSelecionada = parseInt(target.dataset.resposta);
+            const acertou = respostaSelecionada === respostaCerta;
+
+            // Desativa cliques nos alvos
+            document.querySelectorAll('.target').forEach(t => t.style.pointerEvents = 'none');
+            
+            // Marca a resposta clicada visualmente
+            target.style.transform = 'scale(1.2)';
+            target.style.background = acertou ? '#4CAF50' : '#FF4444'; // Verde para acerto, Vermelho para erro
+
+            if (!acertou) {
+                // Se errou, mostra o alvo correto em ciano
+                document.getElementById(alvoCorretoID).style.background = '#00ffff';
+                document.getElementById('message').innerText = '❌ Resposta incorreta! O chute foi para fora.';
+                // Chute para fora
+                const ball = document.getElementById('ball');
+                ball.style.transition = 'all 0.7s ease-out';
+                ball.style.left = `${Math.random() < 0.5 ? 50 : 500}px`; // Chuta para fora (direita ou esquerda)
+                ball.style.top = '100px';
+                // O adversário chuta em seguida
+                setTimeout(() => chuteAdversario(), 1500);
+                return;
+            }
+
+            // ACERTOU A RESPOSTA MATEMÁTICA - AGORA VEM O CHUTE
+
+            // 1. Mover o Goleiro para o Alvo Selecionado
+            const goleiroEl = document.getElementById('goalie');
+            const alvoRect = target.getBoundingClientRect();
+            const gameContainerRect = document.getElementById('game-container').getBoundingClientRect();
+            
+            // Calcula a posição X do goleiro para ir para o centro do alvo (coordenadas relativas ao container)
+            const newGoalkeeperX = (alvoRect.left + alvoRect.right) / 2 - gameContainerRect.left - (goleiroEl.offsetWidth / 2);
+            
+            goleiroEl.style.transition = `left ${equipados.uniforme.efeito === 'goleiro_mais_lento' ? '1.0s' : '0.5s'} ease-out`;
+            goleiroEl.style.left = `${newGoalkeeperX}px`;
+
+            // 2. Mover a Bola para o Alvo Selecionado (Animação)
+            const ballEl = document.getElementById('ball');
+            // Posição do centro do gol em coordenadas internas do container
+            const ballTargetY = alvoRect.top - gameContainerRect.top - (ballEl.offsetHeight / 2);
+            const ballTargetX = alvoRect.left - gameContainerRect.left + (alvoRect.width / 2) - (ballEl.offsetWidth / 2);
+            
+            ballEl.style.transition = 'all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            ballEl.style.left = `${ballTargetX}px`;
+            ballEl.style.top = `${ballTargetY}px`;
+
+            // 3. Determinar o Resultado (Gol ou Defesa)
+            setTimeout(() => {
+                const result = calcularChute(target.id); // Gol do jogador
+                atualizarPlacar(result.gol, 'jogador', result.msg);
+                setTimeout(() => chuteAdversario(), 1000); // Goleiro adversário chuta em seguida
+            }, 800);
+        }
+
+        // --- LÓGICA DE GOL/DEFESA ---
+        function calcularChute(alvoID) {
+            const fase = fases[faseAtualIndex] || { def_base: 0.5 }; // Garante um valor padrão
+            // Defesa Base do Goleiro Adversário (Ex: 0.3 na Fase de Grupos)
+            let chanceDefesa = fase.def_base;
+            
+            // Aplica bônus de Redução de Defesa do Goleiro
+            chanceDefesa -= equipados.goleiro.efet_defesa;
+            
+            // Aplica bônus de Chute Perfeito
+            let chanceGolPerfeito = equipados.bola.efet_perfeito; // 0 a 0.2
+
+            // Se o alvo for t3 ou t4 (chutes mais difíceis), a chance de defesa é maior
+            if (alvoID === 't3' || alvoID === 't4') {
+                chanceDefesa *= 1.1; // Aumenta 10% de chance de defesa para alvos mais baixos
+            }
+            
+            // Ajusta o limite para 0.9 (máximo 90% de chance de defesa)
+            chanceDefesa = Math.min(0.9, Math.max(0.1, chanceDefesa));
+
+            const random = Math.random();
+            let gol = false;
+            let mensagem = '';
+
+            if (random < chanceGolPerfeito) {
+                // Chute Perfeito (sem chance de defesa)
+                gol = true;
+                mensagem = `⚽ CHUTE PERFEITO (${equipados.bola.nome})! GOL!`;
+            } else if (random > chanceDefesa) {
+                // O goleiro errou a defesa
+                gol = true;
+                mensagem = '🥅 GOL! O goleiro adversário não alcançou.';
+            } else {
+                // O goleiro defendeu
+                gol = false;
+                mensagem = '🧤 DEFESA! O goleiro encaixou a bola.';
+            }
+
+            return { gol, msg: mensagem };
+        }
+
+        function chuteAdversario() {
+            // Logica simples: chance de gol do adversário é 50%
+            let chanceGolAdversario = 0.5;
+            // A dificuldade da fase também afeta o adversário (difícil = mais gol)
+            const fase = fases[faseAtualIndex];
+            if (fase && fase.dif === 'hard' || fase.dif === 'expert') chanceGolAdversario = 0.65;
+            
+            const golAdversario = Math.random() < chanceGolAdversario;
+            
+            let mensagem = golAdversario ? '⚫ O Adversário marcou o dele!' : '❌ Seu Goleiro defendeu! Boa!';
+            
+            atualizarPlacar(golAdversario, 'adversario', mensagem);
+            setTimeout(() => proximaRodada(), 1000);
+        }
+        
+        function atualizarPlacar(isGol, quem, mensagem) {
+            if (quem === 'jogador' && isGol) {
+                golsJogador++;
+                document.getElementById('placar-time').innerText = golsJogador;
+            } else if (quem === 'adversario' && isGol) {
+                golsAdversario++;
+                document.getElementById('placar-adversario').innerText = golsAdversario;
+            }
+            document.getElementById('message').innerText = mensagem;
+        }
+
+        function proximaRodada() {
+            const fase = fases[faseAtualIndex];
+            const totalChutes = modoJogoAtual === 'classico' ? fase.meta : 5; // Limite de 5 chutes
+
+            if (chuteAtual >= totalChutes) {
+                finalizarPartida();
+                return;
+            }
+
+            // Reset da bola e do goleiro para a próxima rodada
+            const ball = document.getElementById('ball');
+            ball.style.transition = 'none';
+            ball.style.left = '280px';
+            ball.style.top = '380px';
+            document.getElementById('goalie').style.left = '260px';
+
+            document.getElementById('question').innerText = 'Pronto para o próximo chute?';
+            document.getElementById('message').innerText = 'Clique em "Chute!"';
+            podeChutar = true;
+        }
+
+        function finalizarPartida() {
+            jogoAtivo = false;
+            let resultadoMsg;
+            let moedasGanhas = 0;
+            let xpGanho = 0;
+
+            if (golsJogador > golsAdversario) {
+                // VITÓRIA!
+                const fase = fases[faseAtualIndex];
+                moedasGanhas = modoJogoAtual === 'classico' ? 50 + faseAtualIndex * 10 : 75;
+                xpGanho = fase.xp_win;
+                
+                moedas += moedasGanhas;
+                adicionarXP(xpGanho);
+                
+                if (modoJogoAtual === 'classico') {
+                    faseAtualIndex++;
+                    if (faseAtualIndex >= fases.length) {
+                        resultadoMsg = `👑 CAMPEÃO DA COPA MATEMÁTICA! (Moedas Bônus: 200 | XP: 500)`;
+                        moedas += 200;
+                        adicionarXP(500);
+                        faseAtualIndex = 0; // Reseta para nova campanha
+                    } else {
+                        resultadoMsg = `🎉 VITÓRIA! Você avança para a fase "${fases[faseAtualIndex].nome}"! (Moedas: ${moedasGanhas} | XP: ${xpGanho})`;
+                    }
+                } else {
+                     resultadoMsg = `🎉 VITÓRIA no Modo Rápido! (Moedas: ${moedasGanhas} | XP: ${xpGanho})`;
+                }
+
+            } else if (golsJogador === golsAdversario) {
+                // EMPATE
+                resultadoMsg = '😐 EMPATE! O adversário venceu no desempate. Fim de jogo. (Moedas: 20)';
+                moedas += 20;
+                adicionarXP(10);
+                faseAtualIndex = 0;
+            } else {
+                // DERROTA
+                resultadoMsg = '😭 DERROTA! Seu time foi eliminado. (Moedas: 10)';
+                moedas += 10;
+                adicionarXP(5);
+                faseAtualIndex = 0;
+            }
+
+            alert(`FIM DE JOGO: ${golsJogador} x ${golsAdversario}\n\n${resultadoMsg}`);
+            voltarIntro();
+        }
+
+        // Inicializa a barra superior ao carregar a página
+        window.onload = () => {
+            atualizarTopBar();
+            atualizarVisualEquipados();
+            // Inicia na tela de introdução
+            document.getElementById('intro-screen').classList.remove('hidden');
+        };
+
+    </script>
+</body>
+</html>
